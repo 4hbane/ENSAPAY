@@ -1,14 +1,17 @@
 package com.ENSAPAY.Clientservice.controllers;
 
 
+import com.ENSAPAY.Clientservice.ExternalServices.User;
+import com.ENSAPAY.Clientservice.ExternalServices.authService;
 import com.ENSAPAY.Clientservice.entities.PersonalAccount;
 import com.ENSAPAY.Clientservice.repositories.PersonalAccountRepository;
+import com.ENSAPAY.Clientservice.security.CurrentJWT;
 import com.ENSAPAY.Clientservice.services.Bill;
 import com.ENSAPAY.Clientservice.services.Payement;
-import com.ENSAPAY.Clientservice.services.PayementImplementation;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +22,9 @@ import java.util.Optional;
 public class PersonalAccountController {
     private final PersonalAccountRepository accountRepository;
     private final Payement payement;
+    private final CurrentJWT currentJWT;
+    private final authService authService;
+
 
     @GetMapping("/personalAccounts")
     public List<PersonalAccount> getPersonalAccounts(){
@@ -38,8 +44,13 @@ public class PersonalAccountController {
     }
 
     @PostMapping("/personalAccounts")
-    public PersonalAccount saveNewAccount(@RequestBody PersonalAccount personalAccount){
-        return accountRepository.save ( new PersonalAccount (personalAccount.getFirstName (), personalAccount.getLastName (),personalAccount.getCin (),personalAccount.getPhoneNumber (),personalAccount.getEmail (),personalAccount.getBalance ()) );
+    public PersonalAccount saveNewAccount(@RequestBody PersonalAccount personalAccount, HttpServletRequest request){
+        PersonalAccount accountCreated = accountRepository.save ( new PersonalAccount (personalAccount.getFirstName (), personalAccount.getLastName (),personalAccount.getCin (),personalAccount.getPhoneNumber (),personalAccount.getEmail (),personalAccount.getBalance ()) );
+
+        if (accountCreated != null){ //Create his login in the auth-service
+            authService.createUserLogin ( currentJWT.getJWT ( request ), new User (personalAccount.getPhoneNumber (), personalAccount.getCin ()) );
+        }
+        return accountCreated;
     }
 
     @PutMapping("/personalAccounts/{id}")
@@ -57,9 +68,11 @@ public class PersonalAccountController {
     }
 
     @DeleteMapping("/personalAccounts/{id}")
-    public void deleteAccount(@PathVariable Long id){
+    public void deleteAccount(@PathVariable Long id, HttpServletRequest request){
         if (accountRepository.existsById ( id )) {
-             accountRepository.deleteById ( id );
+            PersonalAccount accountToDelete = accountRepository.findById ( id ).get ();
+            accountRepository.deleteById ( id );
+            authService.deleteUserLogin ( currentJWT.getJWT ( request ), accountToDelete.getPhoneNumber ());
         }
     }
 
