@@ -54,10 +54,13 @@ public class AgentController {
         return false;
     }
 
-    @DeleteMapping("/agents/{id}")
-    public void deleteUser(@PathVariable( name = "id") Long id){
-        if(userRepository.existsByRoleAndId ( roleRepository.findByRoleName ( USER_ROlE ),id )){
-            userRepository.deleteById ( id );
+    @DeleteMapping("/agents/{userName}")
+    public void deleteUserByUserName(@PathVariable String userName){
+        if(userRepository.existsByRoleAndUserName ( roleRepository.findByRoleName ( USER_ROlE ),userName )){
+            User userToDelete = userRepository.findByUserName ( userName );
+            userToDelete.setRole ( null );
+            userRepository.save ( userToDelete );
+            userRepository.deleteById ( userToDelete.getId () );
         }
     }
 
