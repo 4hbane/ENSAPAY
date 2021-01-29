@@ -6,5 +6,7 @@ Route::group([
 ], function () {
     Route::get('/' , 'VoyageController@Voyages');
 
-    Route::get('/stations' ,'VoyageController@getAllStations' );
+   // Route::get('/stations' ,'VoyageController@getAllStations' );
+
+    Route::get('/transportForm' , 'VoyageController@getForms');
 });
