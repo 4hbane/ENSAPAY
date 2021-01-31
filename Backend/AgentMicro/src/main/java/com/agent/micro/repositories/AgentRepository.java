@@ -5,7 +5,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import com.agent.micro.entities.Agent;
 
-@RepositoryRestResource
+@RepositoryRestResource(exported = false)
 public interface AgentRepository extends JpaRepository<Agent, Long>{
 
 }
