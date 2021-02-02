@@ -39,7 +39,7 @@ public class PersonalAccountController {
         return accountRepository.findByAccountNumber ( accountNumber );
     }
     @GetMapping("/personalAccounts/phoneNumber/{phoneNumber}")
-    public Optional<PersonalAccount> getAccountByName(@PathVariable String phoneNumber){
+    public Optional<PersonalAccount> getAccountByPhone(@PathVariable String phoneNumber){
         return accountRepository.findByPhoneNumber(phoneNumber);
     }
 
@@ -48,7 +48,7 @@ public class PersonalAccountController {
         PersonalAccount accountCreated = accountRepository.save ( new PersonalAccount (personalAccount.getFirstName (), personalAccount.getLastName (),personalAccount.getCin (),personalAccount.getPhoneNumber (),personalAccount.getEmail (),personalAccount.getBalance ()) );
 
         if (accountCreated != null){ //Create his login in the auth-service
-            authService.createUserLogin ( currentJWT.getJWT ( request ), new User (personalAccount.getPhoneNumber (), personalAccount.getCin ()) );
+           // authService.createUserLogin ( currentJWT.getJWT ( request ), new User (personalAccount.getPhoneNumber (), personalAccount.getCin ()) );
         }
         return accountCreated;
     }
@@ -72,12 +72,18 @@ public class PersonalAccountController {
         if (accountRepository.existsById ( id )) {
             PersonalAccount accountToDelete = accountRepository.findById ( id ).get ();
             accountRepository.deleteById ( id );
-            authService.deleteUserLogin ( currentJWT.getJWT ( request ), accountToDelete.getPhoneNumber ());
+           // authService.deleteUserLogin ( currentJWT.getJWT ( request ), accountToDelete.getPhoneNumber ());
         }
     }
 
     @PostMapping("/personalAccounts/makePayement")
     public Boolean makePayment(@RequestBody Bill bill){
           return payement.makePayment ( bill );
+    }
+
+
+    @PostMapping("/personalAccounts/verifyAccountExistence")
+    public Boolean verifyAccountExistence(@RequestBody PersonalAccount personalAccount){
+        return accountRepository.existsByFirstNameAndLastNameAndCin (personalAccount.getFirstName (),personalAccount.getLastName (),personalAccount.getCin ());
     }
 }

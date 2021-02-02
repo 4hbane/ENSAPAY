@@ -1,6 +1,10 @@
 package com.cmi.web;
 
-import com.cmi.Formulaire;
+import com.cmi.ClientServices.Bill;
+import com.cmi.ClientServices.ClientService;
+import com.cmi.ClientServices.CompanyAccount;
+import com.cmi.ClientServices.PersonalAccount;
+import com.cmi.entities.Formulaire;
 import com.cmi.entities.Categorie;
 import com.cmi.entities.Creance;
 import com.cmi.entities.Creancier;
@@ -9,6 +13,7 @@ import com.cmi.repository.CreancierRepository;
 import com.sid.eau_electricite.web.FactureEE;
 import com.sid.eau_electricite.web.FactureEEService;
 import com.sid.eau_electricite.web.FactureEEService_Service;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +22,7 @@ import javax.jws.WebParam;
 import javax.jws.WebService;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @WebService(serviceName = "CmiService")
@@ -25,6 +31,8 @@ public class CmiService {
     private CreancierRepository creancierRepository;
     @Autowired
     private CreanceRepository creanceRepository;
+    @Autowired
+    private  ClientService clientService;
 
     private final FactureEEService factureEEService = new FactureEEService_Service().getFactureEEServicePort();
 
@@ -80,24 +88,23 @@ public class CmiService {
     //TODO: getImpayes pour service TRANSPORT
 
     @WebMethod
-    public FactureEE ConfirmePayerFactureEE(@WebParam(name = "factureId") Long id, @WebParam(name = "numTelef") Long numTelef){
+    public FactureEE ConfirmePayerFactureEE(@WebParam(name = "factureId") Long id, @WebParam(name = "numTelef") String numTelef){
         FactureEE factureEE = factureEEService.getFacture(id);
         //TODO: import clientservice as feignClient
         //TODO: add those methods (getPersonalAccountNumberByPhoneNumber/getCompanyAccountNumberByName/getPersonalAccountByAccountNumber)
         //TODO: import Bill class
         //TODO: test this method
         double montantApayer = factureEE.getMontant()+factureEE.getFrais()+factureEE.getPenalite();
-       /* String numCompteAdebiter = clientService.getPersonalAccountNumberByPhoneNumber(numTelef);
-         String numCompteSociete = clientService.getCompanyAccountNumberByName("RADEMA");
-        double solde = clientService.getPersonalAccountByAccountNumber(accountNumber).getBalance();
-        if(solde < montantApayer){
+        PersonalAccount client = clientService.getPersonalAccountPhoneNumber ( numTelef ).get ();
+        CompanyAccount company = clientService.getAccountByName ("RADEMA" ).get ();
+        if (client.getBalance () < montantApayer){
             return factureEE;
-        }else {
-            Bill bill = new Bill(numCompteAdebiter, numCompteSociete, montantApayer);
-            clientService.makePayment(bill);*/
+        }
+        Bill bill = new Bill(client.getAccountNumber (), company.getAccountNumber (), montantApayer);
+        if(clientService.makePayment(bill)){
             factureEEService.payerFacture(id);
-            return factureEE;
-        // }
+        }
+        return factureEE;
     }
 
     //TODO: confirmerPayer pour service TELEPHONIE ( recharge / facture)
@@ -109,11 +116,36 @@ public class CmiService {
     public Double ConsulterSolde(@WebParam(name = "numCompte") String numCompte){
         //TODO: import clientservice as feignClient
         //TODO: add method (getPersonalAccountByAccountNumber)
-      /*  PersonalAccount acc = clientService.getPersonalAccountByAccountNumber(numCompte);
-        Double solde = acc.getBalance();
-        if(solde != 0) return acc.getBalance();
-        else*/ return null;
+        Optional<PersonalAccount> personalAccount = clientService.getPersonalAccountByAccountNumber (numCompte);
+        if (personalAccount.isPresent ()){
+            if (personalAccount.get ().getBalance () !=0 ) return personalAccount.get ().getBalance ();
+        }
+        return null;
     }
 
-    //TODO: création d’un compte de paiement
+    @WebMethod
+    public PersonalAccount getProfile(@WebParam(name = "phoneNumber") String phoneNumber){
+        //TODO: import clientservice as feignClient
+        //TODO: add method (getPersonalAccountByAccountNumber)
+        Optional<PersonalAccount> personalAccount = clientService.getPersonalAccountPhoneNumber ( phoneNumber );
+        if (personalAccount.isPresent ()){
+            return personalAccount.get ();
+        }
+        return null;
+    }
+
+
+
+    @WebMethod
+    public PersonalAccount createPersonalAccount(@WebParam(name = "firstName") String firstName,@WebParam(name = "lastName") String lastName, @WebParam(name = "phoneNumber") String phoneNumber, @WebParam(name = "email") String email,
+                                                 @WebParam(name = "cin") String cin, @WebParam(name = "soldeInitial") Double soldeInitial){
+        //TODO: import clientservice as feignClient
+        //TODO: add method (getPersonalAccountByAccountNumber)
+        PersonalAccount accountToCreate = new PersonalAccount (  firstName, lastName, cin, phoneNumber,email, soldeInitial );
+
+        if (!clientService.verifyAccountExistence ( accountToCreate )){
+            return clientService.saveNewPersonalAccount ( accountToCreate );
+        }
+        throw new RuntimeException("This has already an account !");
+    }
 }

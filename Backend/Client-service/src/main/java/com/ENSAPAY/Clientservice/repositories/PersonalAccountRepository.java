@@ -17,6 +17,7 @@ public interface PersonalAccountRepository extends JpaRepository<PersonalAccount
     Optional<PersonalAccount> findByAccountNumber(String accountNumber);
     Optional<PersonalAccount> findByPhoneNumber(String phoneNumber);
     Boolean existsByAccountNumber( String AccountNumber);
+    Boolean existsByFirstNameAndLastNameAndCin( String firstName, String lastName, String cin);
 
     @Transactional
     @Modifying

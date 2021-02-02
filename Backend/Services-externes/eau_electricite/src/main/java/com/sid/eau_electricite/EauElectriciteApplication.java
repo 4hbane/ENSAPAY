@@ -18,6 +18,7 @@ public class EauElectriciteApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(EauElectriciteApplication.class, args); }
+
     @Bean
     CommandLineRunner start(FactureRepository factureRepository) {
         return args -> {

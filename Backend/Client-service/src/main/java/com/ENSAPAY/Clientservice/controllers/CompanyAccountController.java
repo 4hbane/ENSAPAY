@@ -22,28 +22,32 @@ public class CompanyAccountController {
     private final CurrentJWT currentJWT;
     private final authService authService;
 
-    @GetMapping("companiesAccounts")
+    @GetMapping("/companiesAccounts")
     public List<CompanyAccount> getCompanyAccounts(){
         return accountRepository.findAll ();
     }
-    @GetMapping("companiesAccounts/{id}")
+    @GetMapping("/companiesAccounts/{id}")
     public Optional<CompanyAccount> getAccountById(@PathVariable Long id){
         return accountRepository.findById ( id );
     }
-    @GetMapping("companiesAccounts/accountNumber/{accountNumber}")
+    @GetMapping("/companiesAccounts/accountNumber/{accountNumber}")
     public Optional<CompanyAccount> getAccountByAccountNumber(@PathVariable String accountNumber){
         return accountRepository.findByAccountNumber ( accountNumber );
     }
-    @GetMapping("companiesAccounts/phoneNumber/{phoneNumber}")
-    public Optional<CompanyAccount> getAccountByName(@PathVariable String phoneNumber){
+    @GetMapping("/companiesAccounts/phoneNumber/{phoneNumber}")
+    public Optional<CompanyAccount> getAccountByPhoneNumber(@PathVariable String phoneNumber){
         return accountRepository.findByPhoneNumber(phoneNumber);
+    }
+    @GetMapping("/companiesAccounts/name/{name}")
+    public Optional<CompanyAccount> getAccountByName(@PathVariable String name){
+        return accountRepository.findByName ( name );
     }
 
     @PostMapping("/companiesAccounts")
     public CompanyAccount saveNewAccount(@RequestBody CompanyAccount companyAccount, HttpServletRequest request){
         CompanyAccount accountCreated = accountRepository.save ( new CompanyAccount ( companyAccount.getName (),companyAccount.getPhoneNumber (),companyAccount.getEmail (),companyAccount.getBalance ())  );
         if (accountCreated != null){ //create his login account
-            authService.createUserLogin ( currentJWT.getJWT ( request ), new User (companyAccount.getPhoneNumber (), companyAccount.getName () ));
+          //  authService.createUserLogin ( currentJWT.getJWT ( request ), new User (companyAccount.getPhoneNumber (), companyAccount.getName () ));
         }
         return accountCreated;
     }
@@ -66,7 +70,7 @@ public class CompanyAccountController {
         if (accountRepository.existsById ( id )) {
             CompanyAccount accountToDelete = accountRepository.findById ( id ).get ();
             accountRepository.deleteById ( id );
-            authService.deleteUserLogin ( currentJWT.getJWT ( request ), accountToDelete.getPhoneNumber ()); // delete his login account.
+          //  authService.deleteUserLogin ( currentJWT.getJWT ( request ), accountToDelete.getPhoneNumber ()); // delete his login account.
         }
     }
 

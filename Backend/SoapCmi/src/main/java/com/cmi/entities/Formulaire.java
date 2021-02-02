@@ -1,4 +1,4 @@
-package com.cmi;
+package com.cmi.entities;
 
 import com.cmi.entities.Creancier;
 import lombok.AllArgsConstructor;

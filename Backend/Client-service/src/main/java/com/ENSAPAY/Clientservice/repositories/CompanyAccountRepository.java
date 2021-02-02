@@ -17,6 +17,8 @@ public interface CompanyAccountRepository extends JpaRepository<CompanyAccount, 
 
     Optional<CompanyAccount> findByAccountNumber(String accountNumber);
     Optional<CompanyAccount> findByPhoneNumber(String phoneNumber);
+    Optional<CompanyAccount> findByName(String name);
+
     Boolean existsByAccountNumber( String AccountNumber);
 
     @Transactional
