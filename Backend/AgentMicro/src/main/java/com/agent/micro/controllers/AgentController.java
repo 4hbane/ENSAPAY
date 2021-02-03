@@ -21,23 +21,22 @@ import java.util.Optional;
 @RequestMapping(value = "/api")
 public class AgentController {
 
-	 private final AgentRepository agentRepository;
+	 private  AgentRepository agentRepository;
 	// private final authService authService;
 	// private final CurrentJWT currentJWT;
 
 	@GetMapping(value="/agents")
-	public ResponseEntity<List<Agent>> getAllAgents(){
-		List<Agent> agents = agentRepository.findAll ();
-		return new ResponseEntity<List<Agent>>(agents,HttpStatus.FOUND);
+	public List<Agent> getAllAgents(){
+		return  agentRepository.findAll ();
 	}
 	
 	@GetMapping(value="/agents/{id}")
-	public ResponseEntity<?>getAgentById(@PathVariable Long id){
+	public Agent getAgentById(@PathVariable Long id){
 		Optional<Agent> agent = agentRepository.findById ( id );
 		if(agent.isPresent()) {
-			return new ResponseEntity<Agent>(agent.get(), HttpStatus.FOUND);
+			return agent.get();
 		}
-		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		return null;
 	}
 
 	@PostMapping(value="/agents")
