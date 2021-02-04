@@ -1,9 +1,6 @@
 package com.cmi.web;
 
-import com.cmi.ClientServices.Bill;
-import com.cmi.ClientServices.ClientService;
-import com.cmi.ClientServices.CompanyAccount;
-import com.cmi.ClientServices.PersonalAccount;
+import com.cmi.ClientServices.*;
 import com.cmi.entities.Formulaire;
 import com.cmi.entities.Categorie;
 import com.cmi.entities.Creance;
@@ -16,10 +13,12 @@ import com.sid.eau_electricite.web.FactureEEService_Service;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebService;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -69,8 +68,11 @@ public class CmiService {
                 attributs.put("Numéro de contrat","Long");
                 form.setAttributs(attributs);
             }
-        }else{
+        }else {
            // TODO: Pour Transport
+            RestTemplate restTemplate =  new RestTemplate();
+           TransportForm transportForm =  restTemplate.getForObject("http://localhost:8000/voyages/transportForm", TransportForm.class);
+
             //ajouter les attributs à afficher
         }
         return form;
@@ -111,6 +113,13 @@ public class CmiService {
 
 
     //TODO: confirmerPayer pour service TRANSPORT
+
+    @webMethod
+   public void PayerInvoiceVoyage(@WebParam(name = "id_voyage") Long idVoyage, @WebParam(name = "nbr_peronne") int nbrPersonne , @webParam(name="voyage_day")Date voyage_day){
+       RestTemplate restTemplate =  new RestTemplate();
+       Voyage voyage = new Voyage(idVoyage, nbrPersonne,voyage_day);
+       restTemplate.postForObject("http://localhost:8000/invoice/paye" , voyage ,String.class);
+   }
 
     @WebMethod
     public Double ConsulterSolde(@WebParam(name = "numCompte") String numCompte){
